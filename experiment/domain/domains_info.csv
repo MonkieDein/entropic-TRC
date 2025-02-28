@@ -1,8 +1,6 @@
 domain,initstate,discount
-riverswim.csv,9,0.9
-population.csv,44,0.9
-machine.csv,1,0.9
-inventory1.csv,10,0.9
-inventory2.csv,20,0.9
-ruin.csv,5,0.9
-cliff.csv,37,0.9
+twoS_TRC.csv,1,1.0
+threeS_TRC.csv,1,1.0
+ruin7_TRC.csv,3,1.0
+gridworld_transient_mdp.csv,21,1.0
+two_state_mdp.csv,1,1.0

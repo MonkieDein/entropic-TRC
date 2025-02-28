@@ -11,7 +11,7 @@ function delete_risk_VI(ρ,vf;mdp_dir = "experiment/domain/MDP/")
     return vf
 end
 
-function solveVI(objs::Vector{Objective};mdp_dir = "experiment/domain/MDP/",filename = "experiment/run/train/out.jld2")
+function solveVI(objs::Vector{Objective};mdp_dir = "experiment/domain/MDP/",filename = "experiment/run/train/out.jld2",cache=true)
     # load domains file name, and load value function dictionaries
     domains = readdir(mdp_dir)
     vf = init_jld(filename)
@@ -22,7 +22,7 @@ function solveVI(objs::Vector{Objective};mdp_dir = "experiment/domain/MDP/",file
         # for each algorithm of interest, train via value iteration and save 
         add = false # boolean variable check whether we have added any new element to the dictionary
         for obj in objs
-            if !in_jld(vf,obj.l,domain,obj.ρ) # If VI output not exist, train and save
+            if (!cache) || (!in_jld(vf,obj.l,domain,obj.ρ)) # If VI output not exist, train and save
                 println("Working on solveVI : ",domain ,"($(mdp.lSl),$(mdp.lAl)) for ",obj.ρ)
                 insert_jld(vf , obj.l, domain, obj.ρ,  VI(mdp,obj)) # train and save VI-output
                 add = true

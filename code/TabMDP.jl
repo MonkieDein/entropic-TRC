@@ -244,7 +244,7 @@ function ermVi(mdp::MDP,obj::Objective)
     Threads.@threads for (i, param) in ProgressBar(collect(enumerate(obj.pars)))
         result[i] = ermBackInd(mdp,obj,param,term)
     end
-    GC.gc()  # clear up threads information
+    # GC.gc()  # clear up threads information
     return result
 end
 
