@@ -8,12 +8,14 @@ function erm_loss(q_sa::AbstractVector{Float64}, η::Float64, β::AbstractVector
     target = R .+ (γ .* maximum(q_s_,dims=2))[:,1] # (lQl_, A) -> (lQl_,A -> 1 -> 0) -> (lQl)
     q_sa .-= η .* (exp.(-β .* (target .- q_sa)) .- 1) # (lQl)
 end
-
 function exp_erm_loss(q_sa::AbstractVector{Float64}, η::Float64, β::AbstractVector{Float64},q_s_::AbstractArray{Float64, 2}, γ::Float64 , R::Float64) 
     v_s_ = minimum(q_s_,dims=2)[:,1] # (lQl_, A) -> (lQl_,A -> 1 -> 0) -> (lQl)
     q_sa .+= (η .* ((exp.(-β .* R) .* v_s_) .- q_sa) )# (lQl)
 end
-
+function flip_exp_erm_loss(q_sa::AbstractVector{Float64}, η::Float64, β::AbstractVector{Float64},q_s_::AbstractArray{Float64, 2}, γ::Float64 , R::Float64) 
+    target = exp.(-β .* R) .* maximum(q_s_,dims=2)[:,1] # (lQl_, A) -> (lQl_,A -> 1 -> 0) -> (lQl)
+    q_sa .+= (η .* (target .- q_sa) )# (lQl)
+end
 # Multi threaded
 n_threads = Threads.nthreads()
 println("running with $n_threads of threads")
@@ -28,6 +30,7 @@ obj = Objective(ρ="ERM", pars=[0.1], parEval=[0.1],T=-1)
 lr_settings = Dict()
 lr_settings["erm"] = Dict("loss"=>erm_loss,"v_opt_fun"=>maximum,"pi_opt_fun"=>argmax,"init_q" => 0.0)
 lr_settings["exp_erm"] = Dict("loss"=>exp_erm_loss,"v_opt_fun"=>minimum,"pi_opt_fun"=>argmin,"init_q" => 1.0)
+lr_settings["flip_exp_erm"] = Dict("loss"=>flip_exp_erm_loss,"v_opt_fun"=>maximum,"pi_opt_fun"=>argmax,"init_q" => -1.0)
 
 seed = 0
 for (lr_setting,setting) in lr_settings
@@ -89,17 +92,23 @@ domain = "gridworld_transient_mdp"
 erm_v = init_jld("experiment/run/train/Q_out/erm/$n_steps.jld2")
 println("ERM V: ",erm_v["1"][domain]["ERM"]["v"]')
 println("ERM Q policy : ",erm_v["1"][domain]["ERM"]["π"]')
-
+println("")
 exp_erm_v = init_jld("experiment/run/train/Q_out/exp_erm/$n_steps.jld2")
 exp_v = exp_erm_v["1"][domain]["ERM"]["v"]'
 println("exp ERM V : ",exp_v)
 println("-log( exp_V ) / β : ",(-log.(exp_v) ./ obj.pars))
 println("exp ERM policy : ",exp_erm_v["1"][domain]["ERM"]["π"]')
-
+println("")
+flip_exp_erm_v = init_jld("experiment/run/train/Q_out/flip_exp_erm/$n_steps.jld2")
+flip_exp_v = flip_exp_erm_v["1"][domain]["ERM"]["v"]'
+println("flip exp ERM V : ",flip_exp_v)
+println("-log( -flip_exp_V ) / β : ",(-log.(-flip_exp_v) ./ obj.pars))
+println("flip exp ERM policy : ",flip_exp_erm_v["1"][domain]["ERM"]["π"]')
+println("")
 vf_T = 10000
 vf_obj = Objective( ρ=obj.ρ, T=vf_T, pars=obj.pars)
 vf_file = "experiment/run/train/out_$(vf_T).jld2"
-vf = solveVI([vf_obj],mdp_dir = mdp_dir,filename = vf_file,cache=false)
+vf = solveVI([vf_obj],mdp_dir = mdp_dir,filename = vf_file,cache=false) # 
 println("ERM Value Iteration V : ",vf["$(vf_obj.l)"][domain]["ERM"][1]["v"][1,:])
 println("ERM Value Iteration policy : ",vf["$(vf_obj.l)"][domain]["ERM"][1]["π"][1,:])
 
