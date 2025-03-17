@@ -80,8 +80,8 @@ for (s,a) in zip(states[invalid],actions[invalid])
 end
 for i in ProgressBar(1:n_steps)
     if i % eval_every == 1 # keep value function in a dictionary and resample states_ 
-        states_ = reduce(vcat,(sample_from_transition.(Ref(mdp.P_sample),states, actions,Ref(eval_every)))')  # (Batch, N)
-        rewards = getindex.(Ref(mdp.R),states, actions, states_) # (Batch, N)
+        global states_ = reduce(vcat,(sample_from_transition.(Ref(mdp.P_sample),states, actions,Ref(eval_every)))')  # (Batch, N)
+        global rewards = getindex.(Ref(mdp.R),states, actions, states_) # (Batch, N)
         GC.gc()
     end
     ind = ((i-1) % eval_every) + 1 # index of the sampled s_ state
@@ -110,8 +110,8 @@ for (s,a) in zip(states[invalid],actions[invalid])
 end
 for i in ProgressBar(1:n_steps)
     if i % eval_every == 1 # keep value function in a dictionary and resample states_ 
-        states_ = reduce(vcat,(sample_from_transition.(Ref(mdp.P_sample),states, actions,Ref(eval_every)))')  # (Batch, N)
-        rewards = getindex.(Ref(mdp.R),states, actions, states_) # (Batch, N)
+        global states_ = reduce(vcat,(sample_from_transition.(Ref(mdp.P_sample),states, actions,Ref(eval_every)))')  # (Batch, N)
+        global rewards = getindex.(Ref(mdp.R),states, actions, states_) # (Batch, N)
         GC.gc()
     end
     ind = ((i-1) % eval_every) + 1 # index of the sampled s_ state
@@ -139,8 +139,8 @@ for (s,a) in zip(states[invalid],actions[invalid])
 end
 for i in ProgressBar(1:n_steps)
     if i % eval_every == 1 # keep value function in a dictionary and resample states_ 
-        states_ = reduce(vcat,(sample_from_transition.(Ref(mdp.P_sample),states, actions,Ref(eval_every)))')  # (Batch, N)
-        rewards = getindex.(Ref(mdp.R),states, actions, states_) # (Batch, N)
+        global states_ = reduce(vcat,(sample_from_transition.(Ref(mdp.P_sample),states, actions,Ref(eval_every)))')  # (Batch, N)
+        global rewards = getindex.(Ref(mdp.R),states, actions, states_) # (Batch, N)
         GC.gc()
     end
     ind = ((i-1) % eval_every) + 1 # index of the sampled s_ state
