@@ -16,7 +16,7 @@ domains = readdir(mdp_dir)
 # -----------------------------------------------------
 # |                 Domain of interest                |
 # -----------------------------------------------------
-d = "gridworld_transient_mdp.jld2"
+d = "threeS_TRC.jld2"
 domain = d[1:end-5]
 mdp = load_jld(mdp_dir * d)["MDP"]
 # -----------------------------------------------------
@@ -61,6 +61,8 @@ states = repeat(mdp.S, inner=[mdp.lAl]) # (Batch)
 actions = repeat(mdp.A, outer=[mdp.lSl]) # (Batch)
 # Handle invalid actions  
 invalid = [(sum(r) == -Inf) for r in view.(Ref(mdp.R),states,actions,:)]
+invalid_states = states[invalid]
+invalid_actions = actions[invalid]
 states = states[.!invalid]
 actions = actions[.!invalid]
 total_valid = length(states)
@@ -75,7 +77,7 @@ lr = Counter(1e-8,expDecay,decay_rate=1e-4,ϵ = 1)
 sa_method = "erm"
 loss_fun = lr_settings[sa_method]["loss"]
 q = zeros(mdp.lSl,obj.l,mdp.lAl) # initialize q value function, invalid action takes -Inf
-for (s,a) in zip(states[invalid],actions[invalid])
+for (s,a) in zip(invalid_states,invalid_actions)
     q[s,:, a] .= -Inf
 end
 for i in ProgressBar(1:n_steps)
@@ -105,8 +107,8 @@ lr = Counter(1e-8,expDecay,decay_rate=1e-4,ϵ = 1)
 sa_method = "exp_erm"
 loss_fun = lr_settings[sa_method]["loss"]
 q = ones(mdp.lSl,obj.l,mdp.lAl) # initialize q value function, invalid action takes -Inf
-for (s,a) in zip(states[invalid],actions[invalid])
-    q[s,:, a] .= -Inf
+for (s,a) in zip(invalid_states,invalid_actions)
+    q[s,:, a] .= Inf
 end
 for i in ProgressBar(1:n_steps)
     if i % eval_every == 1 # keep value function in a dictionary and resample states_ 
@@ -134,7 +136,7 @@ lr = Counter(1e-8,expDecay,decay_rate=1e-4,ϵ = 1)
 sa_method = "flip_exp_erm"
 loss_fun = lr_settings[sa_method]["loss"]
 q = -ones(mdp.lSl,obj.l,mdp.lAl) # initialize q value function, invalid action takes -Inf
-for (s,a) in zip(states[invalid],actions[invalid])
+for (s,a) in zip(invalid_states,invalid_actions)
     q[s,:, a] .= -Inf
 end
 for i in ProgressBar(1:n_steps)
