@@ -6,6 +6,19 @@ using JuliennedArrays
 # expDecay: exponential decay function
 ################################################################
 
+function noDecay(eps_min, eps_cur, nlearn, decay_rate)
+    return eps_cur
+end
+
+function linearDecay(eps_min, eps_cur, nlearn, decay_rate)
+    return Base.max(eps_min, eps_cur - decay_rate)
+end
+
+function harmonicDecay(eps_min, eps_cur, nlearn, decay_rate)
+    decay_factor = 1.0 / decay_rate
+    return Base.max(eps_min, eps_cur * (nlearn - 1 + decay_factor ) / (nlearn  + decay_factor))
+end
+
 function expDecay(eps_min, eps_cur, nlearn, decay_rate)
     return Base.max(eps_min, eps_cur * (0.1 ^ (decay_rate)))
 end
